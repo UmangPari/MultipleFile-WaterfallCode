@@ -20,8 +20,9 @@ const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const TEXT_PROMPT = 'textPrompt';
 const WATERFALL_DIALOG = 'waterfallDialog';
 
-var app='';
+var inputApp='';
 var info='';
+var totalApp='';
 
 class AppModelDialog extends ComponentDialog {
     constructor(id) {
@@ -40,101 +41,134 @@ class AppModelDialog extends ComponentDialog {
 
     async appStep(step)
     {
-         return await step.prompt(TEXT_PROMPT,'hello! Please enter app name');
-
+      await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications?output=json`,
+      {
+        auth:
+        {
+          username: 'davinci202006102213579@davinci202006102213579',
+          password: 'gddmj89nwy1k'
+        }
+      }).then((result) =>{   
+       totalApp=result.data;
+      });  
+      for(var i=0;i<totalApp.length;i++)
+      {
+        step.context.sendActivity(totalApp[i].name);
+      }
+         return await step.prompt(TEXT_PROMPT,'hello! Please enter app name from above list');
     }
-    
+         
     async infoStep(step)
     {
-        app=step.result;
+      var flag=-1;
+        inputApp=step.result;
+        for(var i=0;i<totalApp.length;i++)
+        {
+          if(totalApp[i].name=inputApp)
+          {
+            flag=1;
+            break;
+          }
+        } 
+        if(flag==-1)
+        {
+          step.context.sendActivity('Sorry! You entered wrong name');
+          return await step.beginDialog('appModelDialog');
+        }
         
-        return await step.prompt(CHOICE_PROMPT, {
-            prompt: 'Please enter your info.',
-            choices: ChoiceFactory.toChoices(['tiers', 'business-transactions', 'backends','nodes'])
-        }); 
+           return await step.prompt(CHOICE_PROMPT, {
+              prompt: 'Please choose the info u want to know.',
+              choices: ChoiceFactory.toChoices(['Latest business Transactions',
+                                                'Top 10 business-transactions by load',
+                                                'transactions between time ranges',
+                                                'top 10 business transactions by response time',
+                                                'excluded business transactions generated between given time range',
+                                                'top 5 business transactions by Errors',
+                                                'top 5 business transactions by App Average Response time',
+                                                'top 10 business transactions by slow transactions',
+                                                'top 10 business transactions by health rule violations'
+                                              ])
+                });
+        
+        
     }   
     async appModelApiStep(step)
     {
-        info=step.result.value;
-       
-    await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${app}/${info}?output=json`,
-    {
-      auth:
-      {
-        username: 'davinci202006102213579@davinci202006102213579',
-        password: 'gddmj89nwy1k'
-      }
-    }).then((result) =>{   
-     var outerData=result.data;
-     if(info=='tiers')
-     {
-         
-            step.context.sendActivity(outerData[0].agentType);
-              step.context.sendActivity(outerData[0].name);
-              step.context.sendActivity(outerData[0].description);
-              step.context.sendActivity(outerData[0].id.toString());
-              step.context.sendActivity(outerData[0].numberOfNodes.toString());
-              step.context.sendActivity(outerData[0].type);
-     }
-     else if(info=='business-transactions')
-     {
-         for(var i=0;i<outerData.length;i++)
-         {
-             step.context.sendActivity(outerData[i].internalName);
-             step.context.sendActivity(outerData[i].tierId.toString());
-             step.context.sendActivity(outerData[i].entryPointType);
-             step.context.sendActivity(outerData[i].background.toString());
-             step.context.sendActivity(outerData[i].tierName);
-             step.context.sendActivity(outerData[i].name);
-             step.context.sendActivity(outerData[i].id.toString());
-             step.context.sendActivity(outerData[i].entryPointTypeString);
-         }
-       } 
-       else if(info=='backends')
+      info=step.result.value;
+      
+      
+       var btName = new Array();
+       var btValue = new Array(); 
+       await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${inputApp}/business-transactions?output=json`,
        {
-         for(var i=0;i<outerData.length;i++)
-         {
-             step.context.sendActivity(outerData[i].exitPointType);
-             step.context.sendActivity(outerData[i].tierId.toString());
-             step.context.sendActivity(outerData[i].name);
-             step.context.sendActivity(outerData[i].applicationComponentNodeId.toString());
-             step.context.sendActivity(outerData[i].id.toString());
-           for(var j=0;j<outerData[i].properties.length;j++)
-           {
-             step.context.sendActivity(outerData[i].properties[j].name);
-             step.context.sendActivity(outerData[i].properties[j].id.toString());
-             step.context.sendActivity(outerData[i].properties[j].value);
-           }
-       }
-     }
-       else if(info=='nodes')
+        auth:
+        {
+          username: 'davinci202006102213579@davinci202006102213579',
+          password: 'gddmj89nwy1k'
+        }
+       }).then((result) => 
        {
-        step.context.sendActivity(outerData[0].appAgentVersion);
-        step.context.sendActivity(outerData[0].machineAgentVersion);
-        step.context.sendActivity(outerData[0].agentType);
-        step.context.sendActivity(outerData[0].type);
-        step.context.sendActivity(outerData[0].machineName);
-        step.context.sendActivity(outerData[0].appAgentPresent.toString());
-        step.context.sendActivity(outerData[0].nodeUniqueLocalId);
-        step.context.sendActivity(outerData[0].machineId.toString());
-        step.context.sendActivity(outerData[0].machineOSType);
-        step.context.sendActivity(outerData[0].tierId.toString());
-        step.context.sendActivity(outerData[0].tierName);
-        step.context.sendActivity(outerData[0].machineAgentPresent.toString());
-        step.context.sendActivity(outerData[0].name);
-        step.context.sendActivity(outerData[0].ipAddresses);
-        step.context.sendActivity(outerData[0].id.toString());
-       }
-       else
+         for(var i=0;i<result.data.length;i++)
+         {      
+          btName[i]=result.data[i].name;     
+         }  
+       });
+       if(info=='top 10 business transactions by response time')
+       { 
+       var btCount=10;
+       if(btName.length<10)
        {
-          step.context.sendActivity('no data found');
+         btCount=btName.length;
        }
-           
-   });
-   return await step.endDialog();
-   
-   
-    }
-   }
+       for(var i=0;i<btName.length;i++)
+          {    
+            await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/KonaKart/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7CTomcatSamples%7C${btName[i]}%7CAverage%20Response%20Time%20%28ms%29&time-range-type=BEFORE_NOW&duration-in-mins=120&output=json`,
+            {               
+              auth:
+                {
+                  username: 'davinci202006102213579@davinci202006102213579',
+                  password: 'gddmj89nwy1k'
+                }
+            }).then((result) =>{   
+                var outerData = result.data;
+                
+                if(outerData[0].metricValues.length!=0)
+                {
+                btValue[i] = outerData[0].metricValues[0].value;    
+                }
+                else
+                {
+                  btName.splice(i,1);
+                }
+            });
+          }
+         var temp=0;
+          for (var i = 0; i < btValue.length; i++) 
+          {
+              for (var j = i + 1; j < btValue.length; j++) { 
+                  if (btValue[i] < btValue[j]) 
+                  {
+                      temp = btValue[i];
+                      btValue[i] = btValue[j];
+                      btValue[j] = temp;
 
+                      temp = btName[i];
+                      btName[i] = btName[j];
+                      btName[j] = temp;
+                  }
+              }
+            }
+            for(var i=0;i<btCount;i++)
+            {
+              step.context.sendActivity(btName[i]+'  '+btValue[i]);
+            }
+    } 
+    else if(info=='top 5 business transactions by Errors')
+    {
+      
+    }       
+    return await step.endDialog();
+            
+  } 
+}
 module.exports.AppModelDialog = AppModelDialog;
