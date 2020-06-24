@@ -15,6 +15,9 @@ const {
     WaterfallDialog
 } = require('botbuilder-dialogs');
 const axios = require('axios');
+const { TimeRangeDialog } = require('./timeRangeDialog');
+
+const TIMERANGE_DIALOG = 'timeRangeDialog';
 
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const TEXT_PROMPT = 'textPrompt';
@@ -23,16 +26,21 @@ const WATERFALL_DIALOG = 'waterfallDialog';
 var inputApp='';
 var info='';
 var totalApp='';
+var startRange='0';
+var endRange='0';
+var timeRangeFlag=-1;
 
-class AppModelDialog extends ComponentDialog {
+class BtDialog extends ComponentDialog {
     constructor(id) {
-        super(id || 'appModelDialog');
+        super(id || 'btDialog');
 
         this.addDialog(new TextPrompt(TEXT_PROMPT))
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
+            .addDialog(new TimeRangeDialog(TIMERANGE_DIALOG))
             .addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
                 this.appStep.bind(this),
                 this.infoStep.bind(this),
+                this.timeRangeStep.bind(this),
                 this.appModelApiStep.bind(this)
             ]));
 
@@ -91,14 +99,32 @@ class AppModelDialog extends ComponentDialog {
                 });
         
         
+
     }   
-    async appModelApiStep(step)
+    async timeRangeStep(step)
     {
       info=step.result.value;
-      
-      
-       var btName = new Array();
-       var btValue = new Array(); 
+
+      if(info=='top 10 business transactions by response time' 
+        || info=='transactions between time ranges' 
+        || info=='excluded business transactions generated between given time range'
+        || info=='Top 10 business-transactions by load')
+      {
+        timeRangeFlag=1; 
+        return await step.beginDialog(TIMERANGE_DIALOG, {range : startRange});
+      }
+      return await step.next();
+    }
+    async appModelApiStep(step)
+    {
+      //info=step.result.value;
+      if(timeRangeFlag==1)
+      {
+        startRange = step.result.split(" ")[0];
+        endRange = step.result.split(" ")[1];      
+      }
+      var btName = new Array();
+
        await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${inputApp}/business-transactions?output=json`,
        {
         auth:
@@ -115,14 +141,16 @@ class AppModelDialog extends ComponentDialog {
        });
        if(info=='top 10 business transactions by response time')
        { 
-       var btCount=10;
+        var btValue = new Array(); 
+
+          var btCount=10;
        if(btName.length<10)
        {
          btCount=btName.length;
        }
        for(var i=0;i<btName.length;i++)
           {    
-            await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/KonaKart/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7CTomcatSamples%7C${btName[i]}%7CAverage%20Response%20Time%20%28ms%29&time-range-type=BEFORE_NOW&duration-in-mins=120&output=json`,
+            await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7CTomcatSamples%7C${btName[i]}%7CAverage%20Response%20Time%20%28ms%29&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
             {               
               auth:
                 {
@@ -163,12 +191,66 @@ class AppModelDialog extends ComponentDialog {
               step.context.sendActivity(btName[i]+'  '+btValue[i]);
             }
     } 
-    else if(info=='top 5 business transactions by Errors')
+    else if(info=='Top 10 business-transactions by load')
     {
+       var btSum = new Array(); 
+      var btCount=10;
+
+       if(btName.length<10)
+       {
+         btCount=btName.length;
+       }
+       for(var i=0;i<btName.length;i++)
+          {    
+            await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7CTomcatSamples%7C${btName[i]}%7CCalls%20per%20Minute&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
+            {               
+              auth:
+                {
+                  username: 'davinci202006102213579@davinci202006102213579',
+                  password: 'gddmj89nwy1k'
+                }
+            }).then((result) =>{   
+                var outerData = result.data;
+                
+                if(outerData[0].metricValues.length!=0)
+                {
+                btSum[i] = outerData[0].metricValues[0].sum;    
+                }
+                else
+                {
+                  btName.splice(i,1);
+                }
+            });
+          }
+          var temp=0;
+          for (var i = 0; i < btSum.length; i++) 
+          {
+              for (var j = i + 1; j < btSum.length; j++) { 
+                  if (btSum[i] < btSum[j]) 
+                  {
+                      temp = btSum[i];
+                      btSum[i] = btSum[j];
+                      btSum[j] = temp;
+
+                      temp = btName[i];
+                      btName[i] = btName[j];
+                      btName[j] = temp;
+                  }
+              }
+            }
+            for(var i=0;i<btCount;i++)
+            {
+              step.context.sendActivity(btName[i]+'  '+btSum[i]);
+            }
+    }  
+    else if(info == 'excluded business transactions generated between given time range')
+    {
+     
       
-    }       
+    } 
+    else{}
     return await step.endDialog();
             
   } 
 }
-module.exports.AppModelDialog = AppModelDialog;
+module.exports.BtDialog = BtDialog;
