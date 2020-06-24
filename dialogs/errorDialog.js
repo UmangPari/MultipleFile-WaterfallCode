@@ -20,9 +20,9 @@ const CHOICE_PROMPT = 'choicePrompt';
 const TEXT_PROMPT = 'textPrompt';
 const WATERFALL_DIALOG = 'waterfallDialog';
 
-class DbVisibilityDialog extends ComponentDialog {
+class ErrorDialog extends ComponentDialog {
     constructor(id) {
-        super(id || 'dbVisibilityDialog');
+        super(id || 'errorDialog');
 
         this.addDialog(new TextPrompt(TEXT_PROMPT))
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
@@ -52,4 +52,4 @@ class DbVisibilityDialog extends ComponentDialog {
 
    }
 
-module.exports.DbVisibilityDialog = DbVisibilityDialog;
+module.exports.ErrorDialog = ErrorDialog;
