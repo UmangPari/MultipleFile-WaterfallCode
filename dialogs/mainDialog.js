@@ -15,11 +15,11 @@ const {
     TextPrompt,
     WaterfallDialog
 } = require('botbuilder-dialogs');
-const { DbVisibilityDialog } = require('./dbVisibilityDialog');
-const { AppModelDialog} =require('./appModelDialog')
+const { ErrorDialog } = require('./errorDialog');
+const { BtDialog } =require('./btDialog')
 
-const APPMODEL_DIALOG='appModelDialog'
-const DBVISIBILITY_DIALOG ='dbVisibilityDailog';
+const BT_DIALOG='btDialog'
+const ERROR_DIALOG ='errorDailog';
 const Main_Dialog='MainDialog';
 
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
@@ -36,8 +36,8 @@ class MainDialog extends ComponentDialog {
         // This is a sample "book a flight" dialog.
         this.addDialog(new TextPrompt(TEXT_PROMPT))
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
-            .addDialog(new AppModelDialog(APPMODEL_DIALOG))
-            .addDialog(new DbVisibilityDialog(DBVISIBILITY_DIALOG))
+            .addDialog(new BtDialog(BT_DIALOG))
+            .addDialog(new ErrorDialog(ERROR_DIALOG))
             .addDialog(new WaterfallDialog(MAIN_WATERFALL_DIALOG, [
                 this.introStep.bind(this),
                 this.actStep.bind(this),
@@ -74,8 +74,8 @@ class MainDialog extends ComponentDialog {
             
         
         return await step.prompt(CHOICE_PROMPT, {
-            prompt: 'Please choose the intent?',
-            choices: ChoiceFactory.toChoices(['appModelDialog', 'dbVisibilityDialog'])
+            prompt: 'Hi! How can I help u with?',
+            choices: ChoiceFactory.toChoices(['business-transactions', 'errors'])
         });
     }
 
@@ -86,13 +86,13 @@ class MainDialog extends ComponentDialog {
     async actStep(step) 
     {
         
-        if(step.result.value=='appModelDialog')
+        if(step.result.value=='business-transactions')
         {
-            return await step.beginDialog(APPMODEL_DIALOG);
+            return await step.beginDialog(BT_DIALOG);
         }
-        else if(step.result.value=='dbVisibilityDialog')
+        else if(step.result.value=='errors')
         {
-           return await step.beginDialog(DBVISIBILITY_DIALOG);
+           return await step.beginDialog(ERROR_DIALOG);
         }
         else{}
         
