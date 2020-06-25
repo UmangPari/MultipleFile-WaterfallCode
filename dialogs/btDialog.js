@@ -108,13 +108,16 @@ class BtDialog extends ComponentDialog {
       if(info=='top 10 business transactions by response time' 
         || info=='transactions between time ranges' 
         || info=='excluded business transactions generated between given time range'
-        || info=='Top 10 business-transactions by load')
+        || info=='Top 10 business-transactions by load'
+        || info=='top 5 business transactions by Errors'
+        || info=='top 10 business transactions by slow transactions')
       {
         timeRangeFlag=1; 
         return await step.beginDialog(TIMERANGE_DIALOG, {range : startRange});
       }
       return await step.next();
     }
+
     async appModelApiStep(step)
     {
       //info=step.result.value;
@@ -248,7 +251,156 @@ class BtDialog extends ComponentDialog {
      
       
     } 
-    else{}
+    else if(info == 'top 5 business transactions by Errors')
+    {
+      var btSum = new Array(); 
+      var btCount=5;
+
+       if(btName.length<5)
+       {
+         btCount=btName.length;
+       }
+       for(var i=0;i<btName.length;i++)
+          {    
+            await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7CTomcatSamples%7C${btName[i]}%7CErrors%20per%20Minute&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
+            {               
+              auth:
+                {
+                  username: 'davinci202006102213579@davinci202006102213579',
+                  password: 'gddmj89nwy1k'
+                }
+            }).then((result) =>{   
+                var outerData = result.data;
+                if(outerData.length!=0)
+                { 
+               if(outerData[0].metricValues.length!=0)
+                {
+                  btSum[i] = outerData[0].metricValues[0].sum;    
+                }
+                else
+                {
+                  btSum[i]=0;
+                }
+              }
+              else
+              {
+                btSum[i]=0;
+              }
+                
+            });
+          }
+          var temp=0;
+          for (var i = 0; i < btSum.length; i++) 
+          {
+              for (var j = i + 1; j < btSum.length; j++) { 
+                  if (btSum[i] < btSum[j]) 
+                  {
+                      temp = btSum[i];
+                      btSum[i] = btSum[j];
+                      btSum[j] = temp;
+
+                      temp = btName[i];
+                      btName[i] = btName[j];
+                      btName[j] = temp;
+                  }
+              }
+            }
+            var count=0;
+            for(var i=0; i<btName.length;i++)
+            {
+              if(btSum[i]==0)
+              {
+                break;
+              }
+              else
+              {
+                count++;
+              }
+            }
+
+            if(count<btCount)
+            { btCount=count;
+            }
+
+            for(var i=0;i<btCount;i++)
+            {
+              step.context.sendActivity(btName[i] + '  ' + btSum[i]);
+            }
+    }
+    else if(info=='top 10 business transactions by slow transactions')
+    {
+      var btValue = new Array(); 
+
+      var btCount=10;
+   if(btName.length<10)
+   {
+     btCount=btName.length;
+   }
+   for(var i=0;i<btName.length;i++)
+      {    
+        await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7CTomcatSamples%7C${btName[i]}%7CNumber%20of%20Slow%20Calls&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
+        {               
+          auth:
+            {
+              username: 'davinci202006102213579@davinci202006102213579',
+              password: 'gddmj89nwy1k'
+            }
+        }).then((result) =>{   
+            var outerData = result.data;
+            
+            if(outerData[0].metricValues.length!=0)
+            {
+            btValue[i] = outerData[0].metricValues[0].value;    
+            }
+            else
+            {
+              btName.splice(i,1);
+            }
+        });
+      }
+     var temp=0;
+      for (var i = 0; i < btValue.length; i++) 
+      {
+          for (var j = i + 1; j < btValue.length; j++) { 
+              if (btValue[i] < btValue[j]) 
+              {
+                  temp = btValue[i];
+                  btValue[i] = btValue[j];
+                  btValue[j] = temp;
+
+                  temp = btName[i];
+                  btName[i] = btName[j];
+                  btName[j] = temp;
+              }
+          }
+        }
+        var count=0;
+            for(var i=0; i<btName.length;i++)
+            {
+              if(btValue[i]==0)
+              {
+                break;
+              }
+              else
+              {
+                count++;
+              }
+            }
+
+            if(count<btCount)
+            { btCount=count;
+            }
+
+        for(var i=0;i<btCount;i++)
+        {
+          step.context.sendActivity(btName[i]+'  '+btValue[i]);
+        }
+
+    }
+    else
+    {
+
+    }
     return await step.endDialog();
             
   } 
