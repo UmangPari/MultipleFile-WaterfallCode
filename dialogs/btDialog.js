@@ -23,12 +23,12 @@ const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const TEXT_PROMPT = 'textPrompt';
 const WATERFALL_DIALOG = 'waterfallDialog';
 
-var inputApp='';
+var inputApp='aa';
 var info='';
-var totalApp='';
 var startRange='0';
 var endRange='0';
 var timeRangeFlag=-1;
+var appTier='';
 
 class BtDialog extends ComponentDialog {
     constructor(id) {
@@ -49,41 +49,14 @@ class BtDialog extends ComponentDialog {
 
     async appStep(step)
     {
-      await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications?output=json`,
-      {
-        auth:
-        {
-          username: 'davinci202006102213579@davinci202006102213579',
-          password: 'gddmj89nwy1k'
-        }
-      }).then((result) =>{   
-       totalApp=result.data;
-      });  
-      for(var i=0;i<totalApp.length;i++)
-      {
-        step.context.sendActivity(totalApp[i].name);
-      }
-         return await step.prompt(TEXT_PROMPT,'hello! Please enter app name from above list');
+      inputApp = step.options.app;
+      appTier=step.options.tier;
+    
+      return await step.next(); 
     }
          
     async infoStep(step)
     {
-      var flag=-1;
-        inputApp=step.result;
-        for(var i=0;i<totalApp.length;i++)
-        {
-          if(totalApp[i].name=inputApp)
-          {
-            flag=1;
-            break;
-          }
-        } 
-        if(flag==-1)
-        {
-          step.context.sendActivity('Sorry! You entered wrong name');
-          return await step.beginDialog('appModelDialog');
-        }
-        
            return await step.prompt(CHOICE_PROMPT, {
               prompt: 'Please choose the info u want to know.',
               choices: ChoiceFactory.toChoices(['Latest business Transactions',
@@ -94,7 +67,8 @@ class BtDialog extends ComponentDialog {
                                                 'top 5 business transactions by Errors',
                                                 'top 5 business transactions by App Average Response time',
                                                 'top 10 business transactions by slow transactions',
-                                                'top 10 business transactions by health rule violations'
+                                                'top 10 business transactions by health rule violations',
+                                                'top 5 business transactions by stalls'
                                               ])
                 });
         
@@ -110,7 +84,11 @@ class BtDialog extends ComponentDialog {
         || info=='excluded business transactions generated between given time range'
         || info=='Top 10 business-transactions by load'
         || info=='top 5 business transactions by Errors'
-        || info=='top 10 business transactions by slow transactions')
+        || info=='top 10 business transactions by slow transactions'
+        || info=='transactions between time ranges'
+        || info=='top 5 business transactions by App Average Response time'
+        || info=='top 5 business transactions bt stalls'
+        || info=='top 10 business transactions by health rule violations')
       {
         timeRangeFlag=1; 
         return await step.beginDialog(TIMERANGE_DIALOG, {range : startRange});
@@ -120,7 +98,6 @@ class BtDialog extends ComponentDialog {
 
     async appModelApiStep(step)
     {
-      //info=step.result.value;
       if(timeRangeFlag==1)
       {
         startRange = step.result.split(" ")[0];
@@ -128,12 +105,12 @@ class BtDialog extends ComponentDialog {
       }
       var btName = new Array();
 
-       await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${inputApp}/business-transactions?output=json`,
+       await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/business-transactions?output=json`,
        {
         auth:
         {
-          username: 'davinci202006102213579@davinci202006102213579',
-          password: 'gddmj89nwy1k'
+          username: 'amelia202006281753585@amelia202006281753585',
+          password: 'nghn94uju0t8'
         }
        }).then((result) => 
        {
@@ -153,12 +130,12 @@ class BtDialog extends ComponentDialog {
        }
        for(var i=0;i<btName.length;i++)
           {    
-            await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7CTomcatSamples%7C${btName[i]}%7CAverage%20Response%20Time%20%28ms%29&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
+            await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7C${appTier}%7C${btName[i]}%7CAverage%20Response%20Time%20%28ms%29&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
             {               
               auth:
                 {
-                  username: 'davinci202006102213579@davinci202006102213579',
-                  password: 'gddmj89nwy1k'
+                  username: 'amelia202006281753585@amelia202006281753585',
+                  password: 'nghn94uju0t8'
                 }
             }).then((result) =>{   
                 var outerData = result.data;
@@ -205,12 +182,12 @@ class BtDialog extends ComponentDialog {
        }
        for(var i=0;i<btName.length;i++)
           {    
-            await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7CTomcatSamples%7C${btName[i]}%7CCalls%20per%20Minute&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
+            await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7C${appTier}%7C${btName[i]}%7CCalls%20per%20Minute&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
             {               
               auth:
                 {
-                  username: 'davinci202006102213579@davinci202006102213579',
-                  password: 'gddmj89nwy1k'
+                  username: 'amelia202006281753585@amelia202006281753585',
+                  password: 'nghn94uju0t8'
                 }
             }).then((result) =>{   
                 var outerData = result.data;
@@ -262,12 +239,12 @@ class BtDialog extends ComponentDialog {
        }
        for(var i=0;i<btName.length;i++)
           {    
-            await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7CTomcatSamples%7C${btName[i]}%7CErrors%20per%20Minute&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
+            await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7C${appTier}%7C${btName[i]}%7CErrors%20per%20Minute&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
             {               
               auth:
                 {
-                  username: 'davinci202006102213579@davinci202006102213579',
-                  password: 'gddmj89nwy1k'
+                  username: 'amelia202006281753585@amelia202006281753585',
+                  password: 'nghn94uju0t8'
                 }
             }).then((result) =>{   
                 var outerData = result.data;
@@ -338,12 +315,12 @@ class BtDialog extends ComponentDialog {
    }
    for(var i=0;i<btName.length;i++)
       {    
-        await axios.get(`https://davinci202006102213579.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7CTomcatSamples%7C${btName[i]}%7CNumber%20of%20Slow%20Calls&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
+        await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7C${appTier}%7C${btName[i]}%7CNumber%20of%20Slow%20Calls&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
         {               
           auth:
             {
-              username: 'davinci202006102213579@davinci202006102213579',
-              password: 'gddmj89nwy1k'
+              username: 'amelia202006281753585@amelia202006281753585',
+              password: 'nghn94uju0t8'
             }
         }).then((result) =>{   
             var outerData = result.data;
@@ -397,10 +374,113 @@ class BtDialog extends ComponentDialog {
         }
 
     }
-    else
+    else if(info=='Latest business Transactions')
     {
+      var latestBtCount=0, latestBt='';
 
+      for(var i=0;i<btName.length;i++)
+      {
+      await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7C${appTier}%7C${btName[i]}%7CAverage%20Response%20Time%20%28ms%29&time-range-type=BEFORE_NOW&duration-in-mins=11520&output=json`,
+      {               
+        auth:
+          {
+            username: 'amelia202006281753585@amelia202006281753585',
+            password: 'nghn94uju0t8'
+          }
+      }).then((result) =>{   
+          var outerData = result.data;
+          
+          if(outerData[0].metricValues.length!=0)
+          {
+            if(latestBtCount < outerData[0].metricValues[0].startTimeInMillis)
+            {
+              latestBtCount = outerData[0].metricValues[0].startTimeInMillis;
+              latestBt=btName[i];    
+            } 
+          }
+      });
+      }
+      step.context.sendActivity('Latest business transaction is '+latestBt);
+   }
+   else if(info=='transactions between time ranges')
+   {
+    await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/business-transactions?time-range-type=BETWEEN_TIMES&start-time=${startRange}&end-time=${endRange}&output=json`,
+    {
+     auth:
+     {
+       username: 'amelia202006281753585@amelia202006281753585',
+       password: 'nghn94uju0t8'
+     }
+    }).then((result) => 
+    {
+      for(var i=0;i<result.data.length;i++)
+      {
+        step.context.sendActivity(result.data[i].name);
+      }
+    });
+   }
+   else if(info=='top 5 business transactions by App Average Response time')
+   {
+
+   }
+   else if(info=='top 5 business transactions by stalls')
+   {
+    var btValue = new Array(); 
+
+    var btCount=5;
+ if(btName.length<5)
+ {
+   btCount=btName.length;
+ }
+ for(var i=0;i<btName.length;i++)
+    {    
+      await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/metric-data?metric-path=Business%20Transaction%20Performance%7CBusiness%20Transactions%7C${appTier}%7C${btName[i]}%7CStall%20Count&time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
+      {               
+        auth:
+          {
+            username: 'amelia202006281753585@amelia202006281753585',
+            password: 'nghn94uju0t8'
+          }
+      }).then((result) =>{   
+          var outerData = result.data;
+          
+          if(outerData[0].metricValues.length!=0)
+          {
+          btValue[i] = outerData[0].metricValues[0].value;    
+          }
+          else
+          {
+            btName.splice(i,1);
+          }
+      });
     }
+    var temp=0;
+    for (var i = 0; i < btValue.length; i++) 
+    {
+        for (var j = i + 1; j < btValue.length; j++) { 
+            if (btValue[i] < btValue[j]) 
+            {
+                temp = btValue[i];
+                btValue[i] = btValue[j];
+                btValue[j] = temp;
+
+                temp = btName[i];
+                btName[i] = btName[j];
+                btName[j] = temp;
+            }
+        }
+      }
+      for(var i=0;i<btCount;i++)
+      {
+        step.context.sendActivity(btName[i]+'  '+btValue[i]);
+      }
+ 
+   }
+   else if(info=='top 10 business transactions by health rule violations')
+   {
+
+   }
+   else{}
     return await step.endDialog();
             
   } 
