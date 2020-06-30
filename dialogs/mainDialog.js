@@ -17,9 +17,11 @@ const {
 } = require('botbuilder-dialogs');
 const { ErrorDialog } = require('./errorDialog');
 const { BtDialog } =require('./btDialog')
+const { ApplicationDialog }= require('./applicationDialog');
 
 const BT_DIALOG='btDialog'
 const ERROR_DIALOG ='errorDailog';
+const APPLICATION_DIALOG='applicationDialog';
 const Main_Dialog='MainDialog';
 
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
@@ -38,6 +40,7 @@ class MainDialog extends ComponentDialog {
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
             .addDialog(new BtDialog(BT_DIALOG))
             .addDialog(new ErrorDialog(ERROR_DIALOG))
+            .addDialog(new ApplicationDialog(APPLICATION_DIALOG))
             .addDialog(new WaterfallDialog(MAIN_WATERFALL_DIALOG, [
                 this.introStep.bind(this),
                 this.actStep.bind(this),
@@ -75,7 +78,7 @@ class MainDialog extends ComponentDialog {
         
         return await step.prompt(CHOICE_PROMPT, {
             prompt: 'Hi! How can I help u with?',
-            choices: ChoiceFactory.toChoices(['business-transactions', 'errors'])
+            choices: ChoiceFactory.toChoices(['Applications', 'User Experience','DataBases','Servers','Reports','Alert&Respond'])
         });
     }
 
@@ -86,13 +89,35 @@ class MainDialog extends ComponentDialog {
     async actStep(step) 
     {
         
-        if(step.result.value=='business-transactions')
+        if(step.result.value=='Applications')
         {
-            return await step.beginDialog(BT_DIALOG);
+            return await step.beginDialog(APPLICATION_DIALOG);
+            
         }
-        else if(step.result.value=='errors')
+        else if(step.result.value=='User Experience')
         {
-           return await step.beginDialog(ERROR_DIALOG);
+            step.context.sendActivity("Work in Progress");
+            return await step.next();
+        }
+        else if(step.result.value=='DataBases')
+        {
+            step.context.sendActivity("Work in Progress");
+            return await step.next();
+        }
+        else if(step.result.value=='Servers')
+        {
+            step.context.sendActivity("Work in Progress");
+            return await step.next();
+        }
+        else if(step.result.value=='Reports')
+        {
+            step.context.sendActivity("Work in Progress");
+            return await step.next();
+        }
+        else if(step.result.value=='Alert&Respond')
+        {
+            step.context.sendActivity("Work in Progress");
+            return await step.next();
         }
         else{}
         
@@ -114,7 +139,7 @@ class MainDialog extends ComponentDialog {
         }
         else
         {   
-            step.context.sendActivity('Thank you');
+            step.context.sendActivity('Bye');
             return await step.endDialog();
         }
     } 
