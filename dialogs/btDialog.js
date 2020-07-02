@@ -27,6 +27,7 @@ var inputApp='aa';
 var info='';
 var startRange='0';
 var endRange='0';
+var finalRange='';
 var timeRangeFlag=-1;
 var appTier='';
 
@@ -67,7 +68,6 @@ class BtDialog extends ComponentDialog {
                                                 'top 5 business transactions by Errors',
                                                 'top 5 business transactions by App Average Response time',
                                                 'top 10 business transactions by slow transactions',
-                                                'top 10 business transactions by health rule violations',
                                                 'top 5 business transactions by stalls'
                                               ])
                 });
@@ -87,11 +87,10 @@ class BtDialog extends ComponentDialog {
         || info=='top 10 business transactions by slow transactions'
         || info=='transactions between time ranges'
         || info=='top 5 business transactions by App Average Response time'
-        || info=='top 5 business transactions bt stalls'
-        || info=='top 10 business transactions by health rule violations')
+        || info=='top 5 business transactions bt stalls')
       {
         timeRangeFlag=1; 
-        return await step.beginDialog(TIMERANGE_DIALOG, {range : startRange});
+        return await step.beginDialog(TIMERANGE_DIALOG, {range : finalRange});
       }
       return await step.next();
     }
@@ -225,8 +224,21 @@ class BtDialog extends ComponentDialog {
     }  
     else if(info == 'excluded business transactions generated between given time range')
     {
-     
-      
+        await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/business-transactions?exclude=true&output=json`,
+      {
+       auth:
+       {
+         username: 'amelia202006281753585@amelia202006281753585',
+         password: 'nghn94uju0t8'
+       }
+      }).then((result) => 
+      {
+        for(var i=0;i<result.data.length;i++)
+        {
+          step.context.sendActivity(result.data[i].name);
+        }
+      });
+
     } 
     else if(info == 'top 5 business transactions by Errors')
     {
@@ -475,10 +487,6 @@ class BtDialog extends ComponentDialog {
         step.context.sendActivity(btName[i]+'  '+btValue[i]);
       }
  
-   }
-   else if(info=='top 10 business transactions by health rule violations')
-   {
-
    }
    else{}
     return await step.endDialog();
