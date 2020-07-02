@@ -45,7 +45,6 @@ class ApplicationDialog extends ComponentDialog {
             .addDialog(new ErrorDialog(ERROR_DIALOG))
             .addDialog(new WaterfallDialog(MAIN_WATERFALL_DIALOG, [
                 this.appStep.bind(this),
-                this.appCheckStep.bind(this),
                 this.appTierStep.bind(this),
                 this.appActionStep.bind(this),
                 this.appActionChoiceStep.bind(this)
@@ -78,48 +77,12 @@ class ApplicationDialog extends ComponentDialog {
      */
     async appStep(step) {
             
-        await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications?output=json`,
-        {
-          auth:
-          {
-            username: 'amelia202006281753585@amelia202006281753585',
-            password: 'nghn94uju0t8'
-          }
-        }).then((result) =>{   
-         totalApp=result.data;
-        });  
-        
-        for(var i=0;i<totalApp.length;i++)
-        {
-          step.context.sendActivity(totalApp[i].name);
-        }
-           return await step.prompt(TEXT_PROMPT,'hello! Please enter app name from above list');
+       return await step.beginDialog(APPNAME_DIALOG,{app: inputApp});
     }
-
-    async appCheckStep(step)
-    {
-        var flag=-1;
-        inputApp=step.result;
-        for(var i=0;i<totalApp.length;i++)
-        {
-          if(totalApp[i].name=inputApp)
-          {
-            flag=1;
-            break;
-          }
-        } 
-        if(flag==-1)
-        {
-          step.context.sendActivity('Sorry! You entered wrong name');
-          return await step.beginDialog('applicationDialog');
-        }
-        else{
-            return await step.next();
-        }
-
     }
     async appTierStep(step)
     {
+        inputApp=step.result;
         await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/tiers?output=json`,
         {
           auth:
