@@ -21,6 +21,7 @@ const WATERFALL_DIALOG = 'waterfallDialog';
 
 var startRange ='';
 var endRange ='';
+var finalRange='';
 var rangeType='';
 
 class TimeRangeDialog extends ComponentDialog {
@@ -61,8 +62,8 @@ class TimeRangeDialog extends ComponentDialog {
     {   
         if(rangeType=='Before Now')
         {
-            startRange=step.result+ " "+"";
-            return await step.endDialog(startRange);      
+            finalRange=step.result+ " "+"";
+            return await step.endDialog(finalRange);      
         }
         else
         {
@@ -73,8 +74,8 @@ class TimeRangeDialog extends ComponentDialog {
     {
         endRange = step.result;
         
-        startRange= startRange+" "+endRange;
-        return await step.endDialog(startRange);
+        finalRange= startRange+" "+endRange;
+        return await step.endDialog(finalRange);
     }
 }
 
