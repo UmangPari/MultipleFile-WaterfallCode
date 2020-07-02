@@ -16,7 +16,9 @@ const {
     WaterfallDialog
 } = require('botbuilder-dialogs');
 const { TimeRangeDialog }=require('./timeRangeDialog');
+const { AppNameDialog }=require('./appNameDialog');
 
+const APPNAME_DIALOG = 'appNameDialog';
 const TIMERANGE_DIALOG='timeRangeDialog';
 
 const CHOICE_PROMPT = 'choicePrompt';
@@ -39,11 +41,10 @@ class HealthRulesDialog extends ComponentDialog {
         this.addDialog(new TextPrompt(TEXT_PROMPT))
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
             .addDialog(new TimeRangeDialog(TIMERANGE_DIALOG))
+            .addDialog(new AppNameDialog(APPNAME_DIALOG))
             .addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
                 this.questionStep.bind(this),
                 this.appStep.bind(this),
-                this.appCheckStep.bind(this),
-                this.appTierStep.bind(this),
                 this.timeRangeStep.bind(this),
                 this.actionStep.bind(this)
         ]));
@@ -61,63 +62,12 @@ class HealthRulesDialog extends ComponentDialog {
     async appStep(step) {
             
       info=step.result.value;
-
-        await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications?output=json`,
-        {
-          auth:
-          {
-            username: 'amelia202006281753585@amelia202006281753585',
-            password: 'nghn94uju0t8'
-          }
-        }).then((result) =>{   
-         totalApp=result.data;
-        });  
-        
-        for(var i=0;i<totalApp.length;i++)
-        {
-          step.context.sendActivity(totalApp[i].name);
-        }
-           return await step.prompt(TEXT_PROMPT,'hello! Please enter app name from above list');
+      return await step.beginDialog(APPNAME_DIALOG);  
     }
-
-    async appCheckStep(step)
-    {
-        var flag=-1;
-        inputApp=step.result;
-        for(var i=0;i<totalApp.length;i++)
-        {
-          if(totalApp[i].name=inputApp)
-          {
-            flag=1;
-            break;
-          }
-        } 
-        if(flag==-1)
-        {
-          step.context.sendActivity('Sorry! You entered wrong name');
-          return await step.beginDialog('applicationDialog');
-        }
-        else{
-            return await step.next();
-        }
-
-    }
-    async appTierStep(step)
-    {
-        await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/tiers?output=json`,
-        {
-          auth:
-          {
-            username: 'amelia202006281753585@amelia202006281753585',
-            password: 'nghn94uju0t8'
-          }
-        }).then((result) =>{   
-            appTier=result.data[0].name;
-        });   
-        return await step.next();
-    }
+  }
     async timeRangeStep(step)
     {
+        inputApp=step.result;
      if(info=='All Health Violations')
       {
         timeRangeFlag=1; 
@@ -131,9 +81,7 @@ class HealthRulesDialog extends ComponentDialog {
       if(timeRangeFlag==1)
       {
         startRange = step.result.split(" ")[0];
-        step.context.sendActivity(startRange);
-        endRange = step.result.split(" ")[1];
-        step.context.sendActivity(endRange);      
+        endRange = step.result.split(" ")[1];      
       }
       
         if(info=='All Health Violations')
