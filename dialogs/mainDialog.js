@@ -18,7 +18,9 @@ const {
 const { ErrorDialog } = require('./errorDialog');
 const { BtDialog } =require('./btDialog')
 const { ApplicationDialog }= require('./applicationDialog');
+const { AlertRespondDialog }= require('./alertRespondDialog');
 
+const ALERTRESPOND_DIALOG= 'alertRespondDialog';
 const BT_DIALOG='btDialog'
 const ERROR_DIALOG ='errorDailog';
 const APPLICATION_DIALOG='applicationDialog';
@@ -41,6 +43,7 @@ class MainDialog extends ComponentDialog {
             .addDialog(new BtDialog(BT_DIALOG))
             .addDialog(new ErrorDialog(ERROR_DIALOG))
             .addDialog(new ApplicationDialog(APPLICATION_DIALOG))
+            .addDialog(new AlertRespondDialog(ALERTRESPOND_DIALOG))
             .addDialog(new WaterfallDialog(MAIN_WATERFALL_DIALOG, [
                 this.introStep.bind(this),
                 this.actStep.bind(this),
@@ -116,8 +119,7 @@ class MainDialog extends ComponentDialog {
         }
         else if(step.result.value=='Alert&Respond')
         {
-            step.context.sendActivity("Work in Progress");
-            return await step.next();
+            return await step.beginDialog(ALERTRESPOND_DIALOG);
         }
         else{}
         
