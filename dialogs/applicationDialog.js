@@ -17,14 +17,16 @@ const {
 } = require('botbuilder-dialogs');
 const { ErrorDialog } = require('./errorDialog');
 const { BtDialog } =require('./btDialog')
+const{ AppNameDialog }=require('./appNameDialog');
 
 const axios= require('axios');
 
-const BT_DIALOG='btDialog'
+const BT_DIALOG='btDialog';
+const APPNAME_DIALOG='appNameDialog'
 const ERROR_DIALOG ='errorDailog';
 
 var totalApp='';
-var inputApp='';
+var inputApp='null';
 var appTier='';
 
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
@@ -43,6 +45,7 @@ class ApplicationDialog extends ComponentDialog {
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
             .addDialog(new BtDialog(BT_DIALOG))
             .addDialog(new ErrorDialog(ERROR_DIALOG))
+            .addDialog(new AppNameDialog(APPNAME_DIALOG))
             .addDialog(new WaterfallDialog(MAIN_WATERFALL_DIALOG, [
                 this.appStep.bind(this),
                 this.appTierStep.bind(this),
@@ -70,20 +73,14 @@ class ApplicationDialog extends ComponentDialog {
         }
     }
 
-    /**
-     * First step in the waterfall dialog. Prompts the user for a command.
-     * Currently, this expects a booking request, like "book me a flight from Paris to Berlin on march 22"
-     * Note that the sample LUIS model will only recognize Paris, Berlin, New York and London as airport cities.
-     */
+   
     async appStep(step) {
-            
-       return await step.beginDialog(APPNAME_DIALOG,{app: inputApp});
-    }
+        return await step.beginDialog(APPNAME_DIALOG,{app: inputApp});
     }
     async appTierStep(step)
-    {
+    {   
         inputApp=step.result;
-        await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/tiers?output=json`,
+       await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/tiers?output=json`,
         {
           auth:
           {
