@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 const { InputHints, MessageFactory } = require('botbuilder');
 const axios=require('axios');
 const {
@@ -15,21 +12,28 @@ const {
     TextPrompt,
     WaterfallDialog
 } = require('botbuilder-dialogs');
+const { AppNameDialog }=require('./appNameDialog');
+
 
 const CHOICE_PROMPT = 'choicePrompt';
 const TEXT_PROMPT = 'textPrompt';
 const WATERFALL_DIALOG = 'waterfallDialog';
 const APPNAME_DIALOG='appNameDialog';
+
 var asName='Example';
-var info, asId,inputApp='null';
+var info, asId,inputApp='null', appId='';
+
 class ActionSuppressionDialog extends ComponentDialog {
     constructor(id) {
         super(id || 'actionSuppressionDialog');
 
         this.addDialog(new TextPrompt(TEXT_PROMPT))
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
+            .addDialog(new AppNameDialog(APPNAME_DIALOG))
             .addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
                 this.quesStep.bind(this),
+                this.appNameStep.bind(this),
+                this.appIdStep.bind(this),
                 this.asNameStep.bind(this),
                 this.actionStep.bind(this)
         ]));
@@ -44,11 +48,29 @@ class ActionSuppressionDialog extends ComponentDialog {
             choices: ChoiceFactory.toChoices(['Add','Show All','Delete'])
         });
     }
-
+    async appNameStep(step)
+    {
+        info=step.result.value;
+        return await step.beginDialog(APPNAME_DIALOG, {app : inputApp });
+    }
+    async appIdStep(step)
+    {
+        inputApp=step.result;
+        await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}?output=json`,
+        {
+          auth:
+          {
+            username: 'amelia202006281753585@amelia202006281753585',
+            password: 'nghn94uju0t8'
+          }
+        }).then((result) =>{   
+            appId=result.data[0].id;
+        });   
+        return await step.next();
+    }
     async asNameStep(step)
     {
-
-        info=step.result.value;
+        
         if(info=='Add')
         {
         return await step.prompt(TEXT_PROMPT,'Enter any Acion Supression Name');
@@ -56,6 +78,9 @@ class ActionSuppressionDialog extends ComponentDialog {
         else if(info=='Delete')
         {
               return await step.prompt(TEXT_PROMPT,'Enter any Acion Supression Name u want to delete');
+        }
+        else{
+            return await step.next();
         }
 
     }
@@ -65,7 +90,7 @@ class ActionSuppressionDialog extends ComponentDialog {
         if(info=='Add')
         {
             asName=step.result;
-             await axios.post('https://amelia202006281753585.saas.appdynamics.com/controller/alerting/rest/v1/applications/7960/action-suppressions',
+             await axios.post(`https://amelia202006281753585.saas.appdynamics.com/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
              {
                  "name":asName,
                 "disableAgentReporting":true,
@@ -97,7 +122,7 @@ class ActionSuppressionDialog extends ComponentDialog {
         }
         else if(info=='Show All')
         {
-            await axios.get('https://amelia202006281753585.saas.appdynamics.com/controller/alerting/rest/v1/applications/7960/action-suppressions',
+            await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
                 {
                     auth:
                     {
@@ -115,7 +140,7 @@ class ActionSuppressionDialog extends ComponentDialog {
         else if(info=='Delete')
         {
             asName=step.result;
-            await axios.get('https://amelia202006281753585.saas.appdynamics.com/controller/alerting/rest/v1/applications/7960/action-suppressions',
+            await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
                 {
                     auth:
                     {
@@ -136,7 +161,7 @@ class ActionSuppressionDialog extends ComponentDialog {
                 }
                 });
 
-             await axios.delete(`https://amelia202006281753585.saas.appdynamics.com/controller/api/accounts/1414/applications/7960/actionsuppressions/${asId}`,
+             await axios.delete(`https://amelia202006281753585.saas.appdynamics.com/controller/api/accounts/1414/applications/${appId}/actionsuppressions/${asId}`,
              {
                auth:
                     {
