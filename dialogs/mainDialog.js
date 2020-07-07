@@ -15,11 +15,17 @@ const {
     TextPrompt,
     WaterfallDialog
 } = require('botbuilder-dialogs');
-const { DbVisibilityDialog } = require('./dbVisibilityDialog');
-const { AppModelDialog} =require('./appModelDialog')
+const { ErrorDialog } = require('./errorDialog');
+const { BtDialog } =require('./btDialog')
+const { ApplicationDialog }= require('./applicationDialog');
+const { AlertRespondDialog }= require('./alertRespondDialog');
+const { ReportsDialog }= require('./reportsDialog');
 
-const APPMODEL_DIALOG='appModelDialog'
-const DBVISIBILITY_DIALOG ='dbVisibilityDailog';
+const REPORTS_DIALOG='reportsDialog';
+const ALERTRESPOND_DIALOG= 'alertRespondDialog';
+const BT_DIALOG='btDialog'
+const ERROR_DIALOG ='errorDailog';
+const APPLICATION_DIALOG='applicationDialog';
 const Main_Dialog='MainDialog';
 
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
@@ -36,8 +42,11 @@ class MainDialog extends ComponentDialog {
         // This is a sample "book a flight" dialog.
         this.addDialog(new TextPrompt(TEXT_PROMPT))
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
-            .addDialog(new AppModelDialog(APPMODEL_DIALOG))
-            .addDialog(new DbVisibilityDialog(DBVISIBILITY_DIALOG))
+            .addDialog(new BtDialog(BT_DIALOG))
+            .addDialog(new ErrorDialog(ERROR_DIALOG))
+            .addDialog(new ApplicationDialog(APPLICATION_DIALOG))
+            .addDialog(new AlertRespondDialog(ALERTRESPOND_DIALOG))
+            .addDialog(new ReportsDialog(REPORTS_DIALOG))
             .addDialog(new WaterfallDialog(MAIN_WATERFALL_DIALOG, [
                 this.introStep.bind(this),
                 this.actStep.bind(this),
@@ -74,8 +83,8 @@ class MainDialog extends ComponentDialog {
             
         
         return await step.prompt(CHOICE_PROMPT, {
-            prompt: 'Please choose the intent?',
-            choices: ChoiceFactory.toChoices(['appModelDialog', 'dbVisibilityDialog'])
+            prompt: 'Hi! How can I help u with?',
+            choices: ChoiceFactory.toChoices(['Applications', 'User Experience','DataBases','Servers','Reports','Alert&Respond'])
         });
     }
 
@@ -86,13 +95,33 @@ class MainDialog extends ComponentDialog {
     async actStep(step) 
     {
         
-        if(step.result.value=='appModelDialog')
+        if(step.result.value=='Applications')
         {
-            return await step.beginDialog(APPMODEL_DIALOG);
+            return await step.beginDialog(APPLICATION_DIALOG);
+            
         }
-        else if(step.result.value=='dbVisibilityDialog')
+        else if(step.result.value=='User Experience')
         {
-           return await step.beginDialog(DBVISIBILITY_DIALOG);
+            step.context.sendActivity("Work in Progress");
+            return await step.next();
+        }
+        else if(step.result.value=='DataBases')
+        {
+            step.context.sendActivity("Work in Progress");
+            return await step.next();
+        }
+        else if(step.result.value=='Servers')
+        {
+            step.context.sendActivity("Work in Progress");
+            return await step.next();
+        }
+        else if(step.result.value=='Reports')
+        {
+            return await step.beginDialog(REPORTS_DIALOG);
+        }
+        else if(step.result.value=='Alert&Respond')
+        {
+            return await step.beginDialog(ALERTRESPOND_DIALOG);
         }
         else{}
         
@@ -114,7 +143,7 @@ class MainDialog extends ComponentDialog {
         }
         else
         {   
-            step.context.sendActivity('Thank you');
+            step.context.sendActivity('Bye');
             return await step.endDialog();
         }
     } 
