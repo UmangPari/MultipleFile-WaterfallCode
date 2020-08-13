@@ -16,6 +16,12 @@ const {
     WaterfallDialog
 } = require('botbuilder-dialogs');
 
+
+
+var appdLink='https://chaplin202008130019254.saas.appdynamics.com';
+var appdUserName='chaplin202008130019254@chaplin202008130019254';
+var appdPassword='lb19y0vkgnwf';
+
 var totalApp='';
 var inputApp='';
 
@@ -39,12 +45,12 @@ class AppNameDialog extends ComponentDialog {
 
     async appStep(step) {
             
-        await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications?output=json`,
+        await axios.get(`${appdLink}/controller/rest/applications?output=json`,
         {
           auth:
           {
-            username: 'amelia202006281753585@amelia202006281753585',
-            password: 'nghn94uju0t8'
+            username: appdUserName,
+            password: appdPassword
           }
         }).then((result) =>{   
          totalApp=result.data;
