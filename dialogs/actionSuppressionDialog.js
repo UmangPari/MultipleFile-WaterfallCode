@@ -15,6 +15,10 @@ const {
 const { AppNameDialog }=require('./appNameDialog');
 
 
+var appdLink='https://chaplin202008130019254.saas.appdynamics.com';
+var appdUserName='chaplin202008130019254@chaplin202008130019254';
+var appdPassword='lb19y0vkgnwf';
+
 const CHOICE_PROMPT = 'choicePrompt';
 const TEXT_PROMPT = 'textPrompt';
 const WATERFALL_DIALOG = 'waterfallDialog';
@@ -56,12 +60,12 @@ class ActionSuppressionDialog extends ComponentDialog {
     async appIdStep(step)
     {
         inputApp=step.result;
-        await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}?output=json`,
+        await axios.get(`${appdLink}/controller/rest/applications/${inputApp}?output=json`,
         {
           auth:
           {
-            username: 'amelia202006281753585@amelia202006281753585',
-            password: 'nghn94uju0t8'
+            username: appdUserName,
+            password: appdPassword
           }
         }).then((result) =>{   
             appId=result.data[0].id;
@@ -90,7 +94,7 @@ class ActionSuppressionDialog extends ComponentDialog {
         if(info=='Add')
         {
             asName=step.result;
-             await axios.post(`https://amelia202006281753585.saas.appdynamics.com/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
+             await axios.post(`${appdLink}/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
              {
                  "name":asName,
                 "disableAgentReporting":true,
@@ -103,8 +107,8 @@ class ActionSuppressionDialog extends ComponentDialog {
                 {
                     auth:
                     {
-                        username: 'amelia202006281753585@amelia202006281753585',
-                        password: 'nghn94uju0t8'
+                        username: appdUserName,
+                        password: appdPassword
                     }
                }).then((result) => 
                 {
@@ -122,12 +126,12 @@ class ActionSuppressionDialog extends ComponentDialog {
         }
         else if(info=='Show All')
         {
-            await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
+            await axios.get(`${appdLink}/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
                 {
                     auth:
                     {
-                        username: 'amelia202006281753585@amelia202006281753585',
-                        password: 'nghn94uju0t8'
+                        username: appdUserName,
+                        password: appdPassword
                     }
                }).then((result) => 
                 {
@@ -140,12 +144,12 @@ class ActionSuppressionDialog extends ComponentDialog {
         else if(info=='Delete')
         {
             asName=step.result;
-            await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
+            await axios.get(`${appdLink}/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
                 {
                     auth:
                     {
-                        username: 'amelia202006281753585@amelia202006281753585',
-                        password: 'nghn94uju0t8'
+                        username: appdUserName,
+                        password: appdPassword
                     }
                }).then((result) => 
                 {
@@ -161,12 +165,12 @@ class ActionSuppressionDialog extends ComponentDialog {
                 }
                 });
 
-             await axios.delete(`https://amelia202006281753585.saas.appdynamics.com/controller/api/accounts/1414/applications/${appId}/actionsuppressions/${asId}`,
+             await axios.delete(`${appdLink}/controller/api/accounts/1414/applications/${appId}/actionsuppressions/${asId}`,
              {
                auth:
                     {
-                        username: 'amelia202006281753585@amelia202006281753585',
-                        password: 'nghn94uju0t8'
+                        username: appdUserName,
+                        password: appdPassword
                     }
                }).then((result) => 
                 {

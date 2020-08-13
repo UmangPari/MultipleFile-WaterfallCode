@@ -21,6 +21,11 @@ const{ AppNameDialog }=require('./appNameDialog');
 
 const axios= require('axios');
 
+
+var appdLink='https://chaplin202008130019254.saas.appdynamics.com';
+var appdUserName='chaplin202008130019254@chaplin202008130019254';
+var appdPassword='lb19y0vkgnwf';
+
 const BT_DIALOG='btDialog';
 const APPNAME_DIALOG='appNameDialog'
 const ERROR_DIALOG ='errorDailog';
@@ -80,12 +85,12 @@ class ApplicationDialog extends ComponentDialog {
     async appTierStep(step)
     {   
         inputApp=step.result;
-       await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/tiers?output=json`,
+       await axios.get(`${appdLink}/controller/rest/applications/${inputApp}/tiers?output=json`,
         {
           auth:
           {
-            username: 'amelia202006281753585@amelia202006281753585',
-            password: 'nghn94uju0t8'
+            username: appdUserName,
+            password: appdPassword
           }
         }).then((result) =>{   
             appTier=result.data[0].name;

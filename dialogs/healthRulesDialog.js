@@ -25,6 +25,11 @@ const CHOICE_PROMPT = 'choicePrompt';
 const TEXT_PROMPT = 'textPrompt';
 const WATERFALL_DIALOG = 'waterfallDialog';
 
+
+var appdLink='https://chaplin202008130019254.saas.appdynamics.com';
+var appdUserName='chaplin202008130019254@chaplin202008130019254';
+var appdPassword='lb19y0vkgnwf';
+
 var inputApp='aa';
 var info='';
 var totalApp='';
@@ -62,12 +67,13 @@ class HealthRulesDialog extends ComponentDialog {
     async appStep(step) {
             
       info=step.result.value;
-      return await step.beginDialog(APPNAME_DIALOG);  
+      return await step.beginDialog(APPNAME_DIALOG);
     }
-  }
+
+ 
     async timeRangeStep(step)
     {
-        inputApp=step.result;
+      inputApp=step.result;
      if(info=='All Health Violations')
       {
         timeRangeFlag=1; 
@@ -81,17 +87,17 @@ class HealthRulesDialog extends ComponentDialog {
       if(timeRangeFlag==1)
       {
         startRange = step.result.split(" ")[0];
-        endRange = step.result.split(" ")[1];      
+        endRange = step.result.split(" ")[1];   
       }
       
         if(info=='All Health Violations')
         {
-            await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/problems/healthrule-violations?time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
+            await axios.get(`${appdLink}/controller/rest/applications/${inputApp}/problems/healthrule-violations?time-range-type=BEFORE_NOW&duration-in-mins=${startRange}&output=json`,
             {               
               auth:
                 {
-                  username: 'amelia202006281753585@amelia202006281753585',
-                  password: 'nghn94uju0t8'
+                  username: appdUserName,
+                  password: appdPassword
                 }
             }).then((result) =>{
                 for(var i=0;i<result.data.length;i++)
