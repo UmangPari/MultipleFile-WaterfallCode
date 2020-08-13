@@ -17,7 +17,13 @@ const {
 } = require('botbuilder-dialogs');
 const { AppNameDialog }=require('./appNameDialog');
 
+
 const APPNAME_DIALOG = 'appNameDialog';
+
+
+var appdLink='https://chaplin202008130019254.saas.appdynamics.com';
+var appdUserName='chaplin202008130019254@chaplin202008130019254';
+var appdPassword='lb19y0vkgnwf';
 
 var inputApp='';
 var info='';
@@ -62,12 +68,12 @@ class ReportsDialog extends ComponentDialog {
 
         if(info=='All App agent Version')
         {
-            await axios.get(`https://amelia202006281753585.saas.appdynamics.com/controller/rest/applications/${inputApp}/nodes?output=json`,
+            await axios.get(`${appdLink}/controller/rest/applications/${inputApp}/nodes?output=json`,
             {
                auth:
                 {
-                    username: 'amelia202006281753585@amelia202006281753585',
-                    password: 'nghn94uju0t8'
+                    username: appdUserName,
+                    password: appdPassword
                  }
             }).then((result) => 
                  {
