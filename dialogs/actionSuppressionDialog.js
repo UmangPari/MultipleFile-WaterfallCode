@@ -13,19 +13,22 @@ const {
     WaterfallDialog
 } = require('botbuilder-dialogs');
 const { AppNameDialog }=require('./appNameDialog');
+const { DateAndTimeASDialog }=require('./dateAndTimeASDialog');
+var abc;
 
-
-var appdLink='https://chaplin202008130019254.saas.appdynamics.com';
-var appdUserName='chaplin202008130019254@chaplin202008130019254';
-var appdPassword='lb19y0vkgnwf';
+var appdLink='https://charlie202008310330195.saas.appdynamics.com';
+var appdUserName='charlie202008310330195@charlie202008310330195';
+var appdPassword='5myrxxro74q7';
+var accountId='1522';
 
 const CHOICE_PROMPT = 'choicePrompt';
 const TEXT_PROMPT = 'textPrompt';
 const WATERFALL_DIALOG = 'waterfallDialog';
 const APPNAME_DIALOG='appNameDialog';
+const DATEANDTIMEAS_DIALOG='dateAndTimeASDialog';
 
 var asName='Example';
-var info, asId,inputApp='null', appId='';
+var info, asId,inputApp='null', appId='',timeRangeFlag,asEndTime,asEndDate,asStartTime,asStartDate,asFinal;
 
 class ActionSuppressionDialog extends ComponentDialog {
     constructor(id) {
@@ -34,72 +37,131 @@ class ActionSuppressionDialog extends ComponentDialog {
         this.addDialog(new TextPrompt(TEXT_PROMPT))
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
             .addDialog(new AppNameDialog(APPNAME_DIALOG))
+            .addDialog(new DateAndTimeASDialog(DATEANDTIMEAS_DIALOG))
             .addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
                 this.quesStep.bind(this),
                 this.appNameStep.bind(this),
                 this.appIdStep.bind(this),
                 this.asNameStep.bind(this),
-                this.actionStep.bind(this)
+                this.startDateStep.bind(this),
+                this.actionStep.bind(this),
+                this.confirmStep.bind(this),
+                this.finalStep.bind(this)
         ]));
 
         this.initialDialogId = WATERFALL_DIALOG;
     }
 
     async quesStep(step)
-    {
+    {   step.context.sendActivity(abc);
         return await step.prompt(CHOICE_PROMPT, {
             prompt: 'Please choose the following actions',
-            choices: ChoiceFactory.toChoices(['Add','Show All','Delete'])
+            choices: ChoiceFactory.toChoices(['Add','Show All','Delete','Main Menu','BACK'])
         });
     }
     async appNameStep(step)
     {
         info=step.result.value;
-        return await step.beginDialog(APPNAME_DIALOG, {app : inputApp });
+        if(info=='Main Menu'||info=='BACK')
+        {
+            return await step.next();
+        }
+        else
+        {
+            return await step.beginDialog(APPNAME_DIALOG, {app : inputApp });
+        }   
     }
     async appIdStep(step)
     {
-        inputApp=step.result;
-        await axios.get(`${appdLink}/controller/rest/applications/${inputApp}?output=json`,
+        if(info=='Main Menu'||info=='BACK')
         {
-          auth:
-          {
-            username: appdUserName,
-            password: appdPassword
-          }
-        }).then((result) =>{   
-            appId=result.data[0].id;
-        });   
-        return await step.next();
+            return await step.next();
+        }
+        else
+        {
+            inputApp=step.result;
+            await axios.get(`${appdLink}/controller/rest/applications/${inputApp}?output=json`,
+            {
+            auth:
+            {
+                username: appdUserName,
+                password: appdPassword
+            }
+            }).then((result) =>{   
+                appId=result.data[0].id;
+            });   
+            return await step.next();
+        }    
     }
     async asNameStep(step)
     {
         
         if(info=='Add')
         {
-        return await step.prompt(TEXT_PROMPT,'Enter any Acion Supression Name');
+        return await step.prompt(TEXT_PROMPT,'Enter any Action Supression Name');
         }
         else if(info=='Delete')
         {
-              return await step.prompt(TEXT_PROMPT,'Enter any Acion Supression Name u want to delete');
+            await axios.get(`${appdLink}/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
+                {
+                    auth:
+                    {
+                        username: appdUserName,
+                        password: appdPassword
+                    }
+               }).then((result) => 
+                {
+                    for(var i=0;i<result.data.length;i++)
+                    {
+                        step.context.sendActivity(result.data[i].name);
+                    }     
+                });
+              return await step.prompt(TEXT_PROMPT,'Enter the Action Supression Name u want to delete from above list');
+        }
+        else if(info=='Main Menu')
+        {
+            return await step.endDialog(0);
+        }
+        else if(info=='BACK')
+        {
+            return await step.endDialog(1);
+        }
+        else {
+            return await step.next();
+        }
+       
+    }
+    async startDateStep(step)
+      {
+        asName=step.result;
+        timeRangeFlag=-1;
+        if(info=='Add')
+        {
+            timeRangeFlag=1;
+        return await step.beginDialog(DATEANDTIMEAS_DIALOG, {range : asFinal});
         }
         else{
             return await step.next();
         }
-
-    }
+      }
+      
     async actionStep(step)
     {
-      
+     if(timeRangeFlag==1)
+      {asStartDate=step.result.split(" ")[0];
+        asStartTime=step.result.split(" ")[1];
+        asEndDate=step.result.split(" ")[2];
+        asEndTime=step.result.split(" ")[3];      
+      }
         if(info=='Add')
         {
-            asName=step.result;
+            
              await axios.post(`${appdLink}/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
              {
                  "name":asName,
                 "disableAgentReporting":true,
-                "startTime":"2018-04-09T12:10:18",
-                "endTime":"2018-07-10T12:10:18",
+                "startTime":asStartDate+'T'+asStartTime,
+                "endTime":asEndDate+'T'+asEndTime,
                 "affects":{
                      "affectedInfoType":"APPLICATION"
                  }
@@ -143,7 +205,7 @@ class ActionSuppressionDialog extends ComponentDialog {
         }
         else if(info=='Delete')
         {
-            asName=step.result;
+            var flag=-1;
             await axios.get(`${appdLink}/controller/alerting/rest/v1/applications/${appId}/action-suppressions`,
                 {
                     auth:
@@ -157,37 +219,64 @@ class ActionSuppressionDialog extends ComponentDialog {
                     {
                    if(asName==result.data[i].name)       
                         {
+                            flag=1;
                             asId=result.data[i].id; 
                             break;
                         }
-                        else{step.context.sendActivity('There is no such Action Suppression')}
-                
+                       
                 }
                 });
 
-             await axios.delete(`${appdLink}/controller/api/accounts/1414/applications/${appId}/actionsuppressions/${asId}`,
-             {
-               auth:
-                    {
-                        username: appdUserName,
-                        password: appdPassword
+                if(flag==-1)
+                    {    
+                        step.context.sendActivity('There is no such Action Suppression');
                     }
-               }).then((result) => 
-                {
-                    if(result.status==204)
+               else
+               {     
+                    await axios.delete(`${appdLink}/controller/api/accounts/${accountId}/applications/${appId}/actionsuppressions/${asId}`,
                     {
-                        step.context.sendActivity('Deleted succesfully');
-                    }
-                    else
+                        auth:
+                        {
+                             username: appdUserName,
+                            password: appdPassword
+                        }
+                     }).then((result) => 
                     {
-                        step.context.sendActivity('Error');
-                    }
-                });
-
+                        if(result.status==204)
+                        {
+                            step.context.sendActivity('Deleted succesfully');
+                        }
+                        else
+                        {
+                            step.context.sendActivity('Error');
+                        }
+                    });
+               }    
 
         }
-        return await step.endDialog();
+        return await step.next();
     }
+    async confirmStep(step)
+  {
+      abc=1;
+      return await step.prompt(CHOICE_PROMPT, {
+          prompt: 'Any more Info about Action Suppression?',
+          choices: ChoiceFactory.toChoices(['yes', 'no'])
+      });
+  } 
+
+  async finalStep(step)
+  {
+      if(step.result.value=='yes')
+      {
+         return await step.beginDialog('actionSuppressionDialog');
+      }
+      else
+      {   
+          step.context.sendActivity('Bye');
+          return await step.endDialog();
+      }
+  } 
    }
 
 module.exports.ActionSuppressionDialog = ActionSuppressionDialog;
