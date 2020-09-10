@@ -16,17 +16,17 @@ const {
 } = require('botbuilder-dialogs');
 const axios = require('axios');
 const { TimeRangeDialog } = require('./timeRangeDialog');
+const{ AppNameDialog }=require('./appNameDialog');
 
 const TIMERANGE_DIALOG = 'timeRangeDialog';
-
+const APPNAME_DIALOG='appNameDialog';
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const TEXT_PROMPT = 'textPrompt';
 const WATERFALL_DIALOG = 'waterfallDialog';
 
-
-var appdLink='https://chaplin202008130019254.saas.appdynamics.com';
-var appdUserName='chaplin202008130019254@chaplin202008130019254';
-var appdPassword='lb19y0vkgnwf';
+var appdLink='https://charlie202008310330195.saas.appdynamics.com';
+var appdUserName='charlie202008310330195@charlie202008310330195';
+var appdPassword='5myrxxro74q7';
 
 var inputApp='aa';
 var info='';
@@ -43,11 +43,15 @@ class BtDialog extends ComponentDialog {
         this.addDialog(new TextPrompt(TEXT_PROMPT))
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
             .addDialog(new TimeRangeDialog(TIMERANGE_DIALOG))
+            .addDialog(new AppNameDialog(APPNAME_DIALOG))
             .addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
                 this.appStep.bind(this),
+                this.appTierStep.bind(this),
                 this.infoStep.bind(this),
                 this.timeRangeStep.bind(this),
-                this.appModelApiStep.bind(this)
+                this.appModelApiStep.bind(this),
+                this.confirmStep.bind(this),
+                this.finalStep.bind(this)
             ]));
 
         this.initialDialogId = WATERFALL_DIALOG;
@@ -55,25 +59,34 @@ class BtDialog extends ComponentDialog {
 
     async appStep(step)
     {
-      inputApp = step.options.app;
-      appTier=step.options.tier;
-    
-      return await step.next(); 
+      return await step.beginDialog(APPNAME_DIALOG);
     }
-         
+    async appTierStep(step)
+    {
+      inputApp=step.result;
+      await axios.get(`${appdLink}/controller/rest/applications/${inputApp}/tiers?output=json`,
+            {
+            auth:
+            {
+                username: appdUserName,
+                password: appdPassword
+            }
+            }).then((result) =>{   
+                appTier=result.data[0].name;
+            });   
+            return await step.next();
+    }     
     async infoStep(step)
     {
            return await step.prompt(CHOICE_PROMPT, {
               prompt: 'Please choose the info u want to know.',
-              choices: ChoiceFactory.toChoices(['Latest business Transactions',
-                                                'Top 10 business-transactions by load',
-                                                'transactions between time ranges',
+              choices: ChoiceFactory.toChoices(['Top 10 business-transactions by load',
                                                 'top 10 business transactions by response time',
-                                                'excluded business transactions generated between given time range',
                                                 'top 5 business transactions by Errors',
-                                                'top 5 business transactions by App Average Response time',
                                                 'top 10 business transactions by slow transactions',
-                                                'top 5 business transactions by stalls'
+                                                'top 5 business transactions by stalls',
+                                                'Main Menu',
+                                                'BACK'
                                               ])
                 });
         
@@ -85,13 +98,9 @@ class BtDialog extends ComponentDialog {
       info=step.result.value;
 
       if(info=='top 10 business transactions by response time' 
-        || info=='transactions between time ranges' 
-        || info=='excluded business transactions generated between given time range'
         || info=='Top 10 business-transactions by load'
         || info=='top 5 business transactions by Errors'
         || info=='top 10 business transactions by slow transactions'
-        || info=='transactions between time ranges'
-        || info=='top 5 business transactions by App Average Response time'
         || info=='top 5 business transactions bt stalls'
         )
       {
@@ -110,8 +119,9 @@ class BtDialog extends ComponentDialog {
         endRange = step.result.split(" ")[1];      
       }
       var btName = new Array();
-
-       await axios.get(`${appdLink}/controller/rest/applications/${inputApp}/business-transactions?output=json`,
+     
+    //----------------------------------  
+      await axios.get(`${appdLink}/controller/rest/applications/${inputApp}/business-transactions?output=json`,
        {
         auth:
         {
@@ -122,14 +132,13 @@ class BtDialog extends ComponentDialog {
        {
          for(var i=0;i<result.data.length;i++)
          {      
-          btName[i]=result.data[i].name;    
-          
+          btName[i]=result.data[i].name;      
          }  
        });
-       if(info=='top 10 business transactions by response time')
+       
+    if(info=='top 10 business transactions by response time')
        { 
         var btValue = new Array(); 
-
           var btCount=10;
        if(btName.length<10)
        {
@@ -155,7 +164,7 @@ class BtDialog extends ComponentDialog {
               }
                 else
                 {
-                  btName.splice(i,1);
+                  step.context.sendActivity("No data found for last one day of "+btName[i]);
                 }
             });
           }
@@ -235,7 +244,7 @@ class BtDialog extends ComponentDialog {
               step.context.sendActivity(btName[i]+'  '+btSum[i]);
             }
     }  
-    else if(info == 'excluded business transactions generated between given time range')
+   /* else if(info == 'excluded business transactions generated between given time range')
     {
       await axios.get(`${appdLink}/controller/rest/applications/${inputApp}/business-transactions?exclude=true&output=json`,
       {
@@ -252,7 +261,7 @@ class BtDialog extends ComponentDialog {
         }
       });
 
-    } 
+    } */
     else if(info == 'top 5 business transactions by Errors')
     {
       var btSum = new Array(); 
@@ -401,7 +410,7 @@ class BtDialog extends ComponentDialog {
         }
 
     }
-    else if(info=='Latest business Transactions')
+   /* else if(info=='Latest business Transactions')
     {
       var latestBtCount=0, latestBt='';
 
@@ -430,8 +439,8 @@ class BtDialog extends ComponentDialog {
       });
       }
       step.context.sendActivity('Latest business transaction is '+latestBt);
-   }
-   else if(info=='transactions between time ranges')
+   }*/
+  /* else if(info=='transactions between time ranges')
    {
     await axios.get(`${appdLink}/controller/rest/applications/${inputApp}/business-transactions?time-range-type=BETWEEN_TIMES&start-time=${startRange}&end-time=${endRange}&output=json`,
     {
@@ -447,11 +456,7 @@ class BtDialog extends ComponentDialog {
         step.context.sendActivity(result.data[i].name);
       }
     });
-   }
-   else if(info=='top 5 business transactions by App Average Response time')
-   {
-
-   }
+   }*/
    else if(info=='top 5 business transactions by stalls')
    {
     var btValue = new Array(); 
@@ -507,10 +512,36 @@ class BtDialog extends ComponentDialog {
       }
  
    }
-  
-   else{}
-    return await step.endDialog();
+   else if(info=='Main Menu')
+   {
+       return await step.endDialog(0);
+   }
+   else if(info=='BACK')
+   {
+       return await step.endDialog(1);
+   }  
+    return await step.next();
             
+  } 
+  async confirmStep(step)
+  {
+      return await step.prompt(CHOICE_PROMPT, {
+          prompt: 'Any more Info about buisness transactions?',
+          choices: ChoiceFactory.toChoices(['yes', 'no'])
+      });
+  } 
+
+  async finalStep(step)
+  {
+      if(step.result.value=='yes')
+      {
+         return await step.beginDialog('btDialog');
+      }
+      else
+      {   
+          step.context.sendActivity('Bye');
+          return await step.endDialog();
+      }
   } 
 }
 module.exports.BtDialog = BtDialog;
