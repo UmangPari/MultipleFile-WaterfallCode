@@ -19,20 +19,27 @@ const { ErrorDialog } = require('./errorDialog');
 const { BtDialog } =require('./btDialog')
 const{ AppNameDialog }=require('./appNameDialog');
 
+const { NtDialog } = require('./ntDialog');
+const {SepDialog } = require('./sepDialog');
+
 const axios= require('axios');
 
 
-var appdLink='https://chaplin202008130019254.saas.appdynamics.com';
-var appdUserName='chaplin202008130019254@chaplin202008130019254';
-var appdPassword='lb19y0vkgnwf';
+var appdLink='https://charlie202008310330195.saas.appdynamics.com';
+var appdUserName='charlie202008310330195@charlie202008310330195';
+var appdPassword='5myrxxro74q7';
 
+const MAIN_DIALOG='mainDialog';
 const BT_DIALOG='btDialog';
 const APPNAME_DIALOG='appNameDialog'
 const ERROR_DIALOG ='errorDailog';
+const NT_DIALOG = 'ntDialog';
+const SEP_DIALOG = 'sepDialog'
 
 var totalApp='';
 var inputApp='null';
 var appTier='';
+var info;
 
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const TEXT_PROMPT = 'textPrompt';
@@ -49,13 +56,16 @@ class ApplicationDialog extends ComponentDialog {
         this.addDialog(new TextPrompt(TEXT_PROMPT))
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
             .addDialog(new BtDialog(BT_DIALOG))
+            .addDialog(new SepDialog(SEP_DIALOG))
+            .addDialog(new NtDialog(NT_DIALOG))
             .addDialog(new ErrorDialog(ERROR_DIALOG))
             .addDialog(new AppNameDialog(APPNAME_DIALOG))
             .addDialog(new WaterfallDialog(MAIN_WATERFALL_DIALOG, [
-                this.appStep.bind(this),
-                this.appTierStep.bind(this),
+                
                 this.appActionStep.bind(this),
-                this.appActionChoiceStep.bind(this)
+                this.appActionChoiceStep.bind(this),
+                this.confirmStep.bind(this),
+                this.finalStep.bind(this)
                 ]));
 
         this.initialDialogId = MAIN_WATERFALL_DIALOG;
@@ -79,70 +89,97 @@ class ApplicationDialog extends ComponentDialog {
     }
 
    
-    async appStep(step) {
-        return await step.beginDialog(APPNAME_DIALOG,{app: inputApp});
-    }
-    async appTierStep(step)
-    {   
-        inputApp=step.result;
-       await axios.get(`${appdLink}/controller/rest/applications/${inputApp}/tiers?output=json`,
-        {
-          auth:
-          {
-            username: appdUserName,
-            password: appdPassword
-          }
-        }).then((result) =>{   
-            appTier=result.data[0].name;
-        });   
-        return await step.next();
-    }
+    
     async appActionStep(step)
     {
         return await step.prompt(CHOICE_PROMPT, {
             prompt: 'Hi! How can I help u with?',
-            choices: ChoiceFactory.toChoices(['Business-transactions','Service Endpoints','Tiers & Nodes','Servers','Containers','Database Calls','Remote Services'])
+            choices: ChoiceFactory.toChoices(['Business-transactions','Service Endpoints','Tiers & Nodes','Main Menu','BACK'])
         });
     }
-    
     async appActionChoiceStep(step)
     {
-        if(step.result.value=='Business-transactions'){
-            return await step.beginDialog(BT_DIALOG, {app : inputApp, tier : appTier});
+        info=step.result.value;
+        if(info=='Business-transactions'){
+            return await step.beginDialog(BT_DIALOG);
         }
-        else if(step.result.value=='Service Endpoints'){
+        else if(info=='Service Endpoints'){
+            
+            return await step.beginDialog(SEP_DIALOG);
+        }
+        else if(info=='Tiers & Nodes'){
+            
+            return await step.beginDialog(NT_DIALOG);
+        }
+     /*   else if(info=='(Servers)'){
             
             step.context.sendActivity("Work in Progress");
             return await step.endDialog();
         }
-        else if(step.result.value=='Tiers & Nodes'){
+        else if(info=='(Containers)'){
             
             step.context.sendActivity("Work in Progress");
             return await step.endDialog();
         }
-        else if(step.result.value=='Servers'){
+        else if(info=='(Database Calls)'){
             
             step.context.sendActivity("Work in Progress");
             return await step.endDialog();
         }
-        else if(step.result.value=='Containers'){
+        else if(info=='(Remote Services)'){
             
             step.context.sendActivity("Work in Progress");
             return await step.endDialog();
+        }*/
+        else if(info=='Main Menu')
+        {
+            return await step.endDialog(0);
         }
-        else if(step.result.value=='Database Calls'){
-            
-            step.context.sendActivity("Work in Progress");
-            return await step.endDialog();
-        }
-        else if(step.result.value=='Remote Services'){
-            
-            step.context.sendActivity("Work in Progress");
-            return await step.endDialog();
-        }
-        else{}
+        else if(info=='BACK')
+        {
+            return await step.endDialog(1);
+        }  
     }
-          
+
+    async confirmStep(step)
+    {
+        if(step.result==1)
+        {
+            return await step.beginDialog('applicationDialog');
+            
+        }
+        else if(step.result==0)
+        {
+            return await step.endDialog(0);
+        }
+        else
+        {
+            return await step.prompt(CHOICE_PROMPT, {
+                prompt: 'Any more Info about application?',
+                choices: ChoiceFactory.toChoices(['yes', 'no'])
+            });
+        }    
+    } 
+ 
+    async finalStep(step)
+    {
+        if(step.result==0)
+      {
+          return await step.endDialog(0);
+      }
+      else if(step.result==1)
+      {
+          return await step.endDialog(0);
+      }
+       else if(step.result.value=='yes')
+        {
+           return await step.beginDialog('applicationDialog');
+        }
+        else
+        {   
+            return await step.endDialog();
+        }
+    } 
 }
 
 module.exports.ApplicationDialog = ApplicationDialog;
