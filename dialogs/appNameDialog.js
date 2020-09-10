@@ -18,9 +18,9 @@ const {
 
 
 
-var appdLink='https://chaplin202008130019254.saas.appdynamics.com';
-var appdUserName='chaplin202008130019254@chaplin202008130019254';
-var appdPassword='lb19y0vkgnwf';
+var appdLink='https://charlie202008310330195.saas.appdynamics.com';
+var appdUserName='charlie202008310330195@charlie202008310330195';
+var appdPassword='5myrxxro74q7';
 
 var totalApp='';
 var inputApp='';
@@ -69,7 +69,7 @@ class AppNameDialog extends ComponentDialog {
         inputApp=step.result;
         for(var i=0;i<totalApp.length;i++)
         {
-          if(totalApp[i].name=inputApp)
+          if(totalApp[i].name==inputApp)
           {
             flag=1;
             break;
