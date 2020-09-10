@@ -1,7 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
-
 const { MessageFactory, InputHints } = require('botbuilder');
 const {
     AttachmentPrompt,
@@ -13,14 +9,18 @@ const {
     DialogTurnStatus,
     NumberPrompt,
     TextPrompt,
-    WaterfallDialog
+    WaterfallDialog,
+    ListStyle
 } = require('botbuilder-dialogs');
 const { ErrorDialog } = require('./errorDialog');
 const { BtDialog } =require('./btDialog')
 const { ApplicationDialog }= require('./applicationDialog');
 const { AlertRespondDialog }= require('./alertRespondDialog');
 const { ReportsDialog }= require('./reportsDialog');
+const { DatabaseDialog }= require('./databaseDialog');
+const { ServerDialog }= require('./serverDialog');
 
+const SERVER_DIALOG='serverDialog';
 const REPORTS_DIALOG='reportsDialog';
 const ALERTRESPOND_DIALOG= 'alertRespondDialog';
 const BT_DIALOG='btDialog'
@@ -31,7 +31,7 @@ const Main_Dialog='MainDialog';
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const TEXT_PROMPT = 'textPrompt';
 const MAIN_WATERFALL_DIALOG = 'mainWaterfallDialog';
-
+const DATABASE_DIALOG ='databaseDialog';
 class MainDialog extends ComponentDialog {
     constructor() {
         super( 'MainDialog');
@@ -47,6 +47,8 @@ class MainDialog extends ComponentDialog {
             .addDialog(new ApplicationDialog(APPLICATION_DIALOG))
             .addDialog(new AlertRespondDialog(ALERTRESPOND_DIALOG))
             .addDialog(new ReportsDialog(REPORTS_DIALOG))
+            .addDialog(new DatabaseDialog(DATABASE_DIALOG))
+            .addDialog(new ServerDialog(SERVER_DIALOG))
             .addDialog(new WaterfallDialog(MAIN_WATERFALL_DIALOG, [
                 this.introStep.bind(this),
                 this.actStep.bind(this),
@@ -80,11 +82,13 @@ class MainDialog extends ComponentDialog {
      * Note that the sample LUIS model will only recognize Paris, Berlin, New York and London as airport cities.
      */
     async introStep(step) {
-            
+        
+    
         
         return await step.prompt(CHOICE_PROMPT, {
             prompt: 'Hi! How can I help u with?',
-            choices: ChoiceFactory.toChoices(['Applications', 'User Experience','DataBases','Servers','Reports','Alert&Respond'])
+            choices: ChoiceFactory.toChoices(['Applications','DataBases','Servers','Reports','Alert&Respond']),
+            style: ListStyle.heroCard
         });
     }
 
@@ -100,20 +104,18 @@ class MainDialog extends ComponentDialog {
             return await step.beginDialog(APPLICATION_DIALOG);
             
         }
-        else if(step.result.value=='User Experience')
+     /*   else if(step.result.value=='User Experience')
         {
             step.context.sendActivity("Work in Progress");
             return await step.next();
-        }
+        }*/
         else if(step.result.value=='DataBases')
         {
-            step.context.sendActivity("Work in Progress");
-            return await step.next();
+            return await step.beginDialog(DATABASE_DIALOG);
         }
         else if(step.result.value=='Servers')
         {
-            step.context.sendActivity("Work in Progress");
-            return await step.next();
+            return await step.beginDialog(SERVER_DIALOG);
         }
         else if(step.result.value=='Reports')
         {
@@ -129,10 +131,21 @@ class MainDialog extends ComponentDialog {
 
     async confirmStep(step)
     {
-        return await step.prompt(CHOICE_PROMPT, {
-            prompt: 'Any more Info?',
-            choices: ChoiceFactory.toChoices(['yes', 'no'])
-        });
+        if(step.result==0)
+        {
+            return await step.beginDialog('MainDialog');
+        }
+        else if(step.result==1)
+        {
+            return await step.beginDialog('MainDialog');
+        }
+        else
+        {
+            return await step.prompt(CHOICE_PROMPT, {
+                 prompt: 'Any more Info about main menu?',
+                choices: ChoiceFactory.toChoices(['yes', 'no'])
+            });
+        }    
     }   
 
     async finalStep(step)
