@@ -31,9 +31,9 @@ class TimeRangeDialog extends ComponentDialog {
         this.addDialog(new TextPrompt(TEXT_PROMPT))
             .addDialog(new ChoicePrompt(CHOICE_PROMPT))
             .addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
-                this.rangeTypeStep.bind(this),
-                this.startRangeStep.bind(this),
-                this.endRangeStep.bind(this),
+           //     this.rangeTypeStep.bind(this),
+             //   this.startRangeStep.bind(this),
+               // this.endRangeStep.bind(this),
                 this.finalResultStep.bind(this)
         ]));
 
@@ -72,9 +72,11 @@ class TimeRangeDialog extends ComponentDialog {
     }}
     async finalResultStep(step)
     {
-        endRange = step.result;
+      //  endRange = step.result;
         
-        finalRange= startRange+" "+endRange;
+        //finalRange= startRange+" "+endRange;
+
+        finalRange='1440';
         return await step.endDialog(finalRange);
     }
 }
