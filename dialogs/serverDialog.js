@@ -18,9 +18,9 @@ const {
 
 var info;
 
-var appdLink='https://charlie202008310330195.saas.appdynamics.com';
-var appdUserName='charlie202008310330195@charlie202008310330195';
-var appdPassword='5myrxxro74q7';
+var appdLink='https://theater202009172349223.saas.appdynamics.com';
+var appdUserName='theater202009172349223@theater202009172349223';
+var appdPassword='vdrv1icvgblr';
 
 const CHOICE_PROMPT = 'choicePrompt';
 const TEXT_PROMPT = 'textPrompt';
@@ -66,6 +66,10 @@ class ServerDialog extends ComponentDialog {
         {
             step.context.sendActivity('No data found');
         }
+        else if(outerData[0].metricValues.length==0)
+        {
+            step.context.sendActivity('No data found');
+        }
         else
         {
              step.context.sendActivity(outerData[0].metricValues[0].values);
@@ -94,6 +98,10 @@ class ServerDialog extends ComponentDialog {
         {
             step.context.sendActivity('No data found');
         }
+        else if(outerData[0].metricValues.length==0)
+        {
+            step.context.sendActivity('No data found');
+        }
         else
         {
              step.context.sendActivity(outerData[0].metricValues[0].sum);
@@ -114,6 +122,10 @@ class ServerDialog extends ComponentDialog {
         }).then((result) =>{   
         var outerData=result.data;
         if(outerData.length==0)
+        {
+            step.context.sendActivity('No data found');
+        }
+        else if(outerData[0].metricValues.length==0)
         {
             step.context.sendActivity('No data found');
         }
@@ -140,6 +152,10 @@ class ServerDialog extends ComponentDialog {
         {
             step.context.sendActivity('No data found');
         }
+        else if(outerData[0].metricValues.length==0)
+        {
+            step.context.sendActivity('No data found');
+        }
         else
         {
             step.context.sendActivity(outerData[0].metricValues[0].sum);
@@ -160,6 +176,10 @@ class ServerDialog extends ComponentDialog {
         }).then((result) =>{   
         var outerData=result.data;
         if(outerData.length==0)
+        {
+            step.context.sendActivity('No data found');
+        }
+        else if(outerData[0].metricValues.length==0)
         {
             step.context.sendActivity('No data found');
         }
