@@ -24,9 +24,9 @@ const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const TEXT_PROMPT = 'textPrompt';
 const WATERFALL_DIALOG = 'waterfallDialog';
 
-var appdLink='https://charlie202008310330195.saas.appdynamics.com';
-var appdUserName='charlie202008310330195@charlie202008310330195';
-var appdPassword='5myrxxro74q7';
+var appdLink='https://theater202009172349223.saas.appdynamics.com';
+var appdUserName='theater202009172349223@theater202009172349223';
+var appdPassword='vdrv1icvgblr';
 
 var inputApp='aa';
 var info='';
@@ -117,6 +117,7 @@ class BtDialog extends ComponentDialog {
       {
         startRange = step.result.split(" ")[0];
         endRange = step.result.split(" ")[1];      
+        timeRangeFlag=-1;
       }
       var btName = new Array();
      
@@ -164,6 +165,7 @@ class BtDialog extends ComponentDialog {
               }
                 else
                 {
+                  btValue[i]=0;
                   step.context.sendActivity("No data found for last one day of "+btName[i]);
                 }
             });
@@ -186,7 +188,7 @@ class BtDialog extends ComponentDialog {
             }
             for(var i=0;i<btCount;i++)
             {
-              step.context.sendActivity(btName[i]+'  '+btValue[i]);
+              step.context.sendActivity(btName[i]+'  '+btValue[i].toString());
             }
     } 
     else if(info=='Top 10 business-transactions by load')
@@ -218,7 +220,8 @@ class BtDialog extends ComponentDialog {
                 }  
                 else
                 {
-                  btName.splice(i,1);
+                  btSum[i]=0;
+                  step.context.sendActivity("No data found for last one day of "+btName[i]);
                 }
                 
             });
@@ -241,7 +244,7 @@ class BtDialog extends ComponentDialog {
             }
             for(var i=0;i<btCount;i++)
             {
-              step.context.sendActivity(btName[i]+'  '+btSum[i]);
+              step.context.sendActivity(btName[i]+'  '+btSum[i].toString());
             }
     }  
    /* else if(info == 'excluded business transactions generated between given time range')
@@ -296,6 +299,7 @@ class BtDialog extends ComponentDialog {
               else
               {
                 btSum[i]=0;
+                step.context.sendActivity("No data found for last one day of "+btName[i]);
               }
                 
             });
@@ -319,7 +323,7 @@ class BtDialog extends ComponentDialog {
             var count=0;
             for(var i=0; i<btName.length;i++)
             {
-              if(btSum[i]==0)
+              if(btSum[i].length==0)
               {
                 break;
               }
@@ -335,7 +339,7 @@ class BtDialog extends ComponentDialog {
 
             for(var i=0;i<btCount;i++)
             {
-              step.context.sendActivity(btName[i] + '  ' + btSum[i]);
+              step.context.sendActivity(btName[i] + '  ' + btSum[i].toString());
             }
     }
     else if(info=='top 10 business transactions by slow transactions')
@@ -362,13 +366,19 @@ class BtDialog extends ComponentDialog {
             {
             if(outerData[0].metricValues.length!=0)
             {
-            btValue[i] = outerData[0].metricValues[0].value;    
+            btValue[i] = outerData[0].metricValues[0].value; 
             }
-          }
             else
-            {
-              btName.splice(i,1);
-            }
+          {
+            btValue[i]=0;
+            step.context.sendActivity("No data found for last one day of "+btName[i]);
+          }
+          }
+          else
+          {
+            btValue[i]=0;
+            step.context.sendActivity("No data found for last one day of "+btName[i]);
+          }
         });
       }
      var temp=0;
@@ -390,7 +400,7 @@ class BtDialog extends ComponentDialog {
         var count=0;
             for(var i=0; i<btName.length;i++)
             {
-              if(btValue[i]==0)
+              if(btValue.length==0)
               {
                 break;
               }
@@ -406,7 +416,7 @@ class BtDialog extends ComponentDialog {
 
         for(var i=0;i<btCount;i++)
         {
-          step.context.sendActivity(btName[i]+'  '+btValue[i]);
+          step.context.sendActivity(btName[i]+'  '+btValue[i].toString());
         }
 
     }
@@ -483,11 +493,15 @@ class BtDialog extends ComponentDialog {
           {
           btValue[i] = outerData[0].metricValues[0].value;    
           }
-        }
-          else
-          {
-            btName.splice(i,1);
+          else{
+            btValue[i]=0;
           }
+        }
+        else
+        {
+          btValue[i]=0;
+          step.context.sendActivity("No data found for last one day of "+btName[i]);
+        }
       });
     }
     var temp=0;
