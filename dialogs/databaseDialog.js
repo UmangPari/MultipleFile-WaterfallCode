@@ -16,9 +16,9 @@ const{ DbNameDialog }=require('./dbNameDialog');
 const DBNAME_DIALOG='dbNameDialog';
 var info;
 var inputDB;
-var appdLink='https://charlie202008310330195.saas.appdynamics.com';
-var appdUserName='charlie202008310330195@charlie202008310330195';
-var appdPassword='5myrxxro74q7';
+var appdLink='https://theater202009172349223.saas.appdynamics.com';
+var appdUserName='theater202009172349223@theater202009172349223';
+var appdPassword='vdrv1icvgblr';
 
 const CHOICE_PROMPT = 'choicePrompt';
 const TEXT_PROMPT = 'textPrompt';
@@ -43,12 +43,11 @@ class DatabaseDialog extends ComponentDialog {
      return await step.beginDialog(DBNAME_DIALOG,{app: inputDB});
 
     }
-
     async functionStep(step)
     
     {
         inputDB=step.result;
-        await axios.get(`${appdLink}/controller/rest/applications/Database%20Monitoring/metric-data?metric-path=Databases%7C${inputDB}%7CKPI%7CCalls%20per%20Minute&time-range-type=BEFORE_NOW&duration-in-mins=43200&output=json`,
+        await axios.get(`${appdLink}/controller/rest/applications/Database%20Monitoring/metric-data?metric-path=Databases%7C${inputDB}%7CKPI%7CCalls%20per%20Minute&time-range-type=BEFORE_NOW&duration-in-mins=1440&output=json`,
             {               
               auth:
                 {
@@ -56,11 +55,18 @@ class DatabaseDialog extends ComponentDialog {
                   password: appdPassword
                 }
             }).then((result) =>{   
+              if(result.data[0].metricValues.length!=0)
+              {
                step.context.sendActivity("Calls Per Minute : "+result.data[0].metricValues[0].count.toString());
-            });
+              }
+              else
+              {
+                step.context.sendActivity("No calls per minute found");
+              }      
+          });
            
 
-            await axios.get(`${appdLink}/controller/rest/applications/Database%20Monitoring/metric-data?metric-path=Databases%7C${inputDB}%7CKPI%7CDB%20Availability&time-range-type=BEFORE_NOW&duration-in-mins=43200&output=json`,
+            await axios.get(`${appdLink}/controller/rest/applications/Database%20Monitoring/metric-data?metric-path=Databases%7C${inputDB}%7CKPI%7CDB%20Availability&time-range-type=BEFORE_NOW&duration-in-mins=1440&output=json`,
             {               
               auth:
                 {
@@ -68,8 +74,16 @@ class DatabaseDialog extends ComponentDialog {
                   password: appdPassword
                 }
             }).then((result) =>{   
+              if(result.data[0].metricValues.length!=0)
+              {
                 step.context.sendActivity("DB Availability : "+result.data[0].metricValues[0].current.toString());
-            });await axios.get(`${appdLink}/controller/rest/applications/Database%20Monitoring/metric-data?metric-path=Databases%7C${inputDB}%7CKPI%7CNumber%20of%20Connections&time-range-type=BEFORE_NOW&duration-in-mins=43200&output=json`,
+              }
+              else
+              {
+                step.context.sendActivity("No db availability found");
+              }
+            });
+            await axios.get(`${appdLink}/controller/rest/applications/Database%20Monitoring/metric-data?metric-path=Databases%7C${inputDB}%7CKPI%7CNumber%20of%20Connections&time-range-type=BEFORE_NOW&duration-in-mins=1440&output=json`,
             {               
               auth:
                 {
@@ -77,8 +91,17 @@ class DatabaseDialog extends ComponentDialog {
                   password: appdPassword
                 }
             }).then((result) =>{   
+              if(result.data[0].metricValues.length!=0)
+              {
                 step.context.sendActivity("No Of Connections : "+result.data[0].metricValues[0].count.toString());
-            });await axios.get(`${appdLink}/controller/rest/applications/Database%20Monitoring/metric-data?metric-path=Databases%7C${inputDB}%7CKPI%7CTime%20Spent%20in%20Executions%20%28s%29&time-range-type=BEFORE_NOW&duration-in-mins=43200&output=json`,
+              }
+              else
+              {
+                step.context.sendActivity("No connections found");
+              }
+              
+            });
+            await axios.get(`${appdLink}/controller/rest/applications/Database%20Monitoring/metric-data?metric-path=Databases%7C${inputDB}%7CKPI%7CTime%20Spent%20in%20Executions%20%28s%29&time-range-type=BEFORE_NOW&duration-in-mins=1440&output=json`,
             {               
               auth:
                 {
@@ -86,7 +109,15 @@ class DatabaseDialog extends ComponentDialog {
                   password: appdPassword
                 }
             }).then((result) =>{   
+              if(result.data[0].metricValues.length!=0)
+              {
                 step.context.sendActivity("Time spent in execution (Sec): "+result.data[0].metricValues[0].count.toString());
+              }
+              else
+              {
+                step.context.sendActivity("No time spent found");
+              } 
+              
             });
             return await step.endDialog();
 
