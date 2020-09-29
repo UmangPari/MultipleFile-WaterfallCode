@@ -76,7 +76,7 @@ class TimeRangeDialog extends ComponentDialog {
         
         //finalRange= startRange+" "+endRange;
 
-        finalRange='1440';
+        finalRange='4320';
         return await step.endDialog(finalRange);
     }
 }
