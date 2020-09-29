@@ -25,9 +25,9 @@ const {SepDialog } = require('./sepDialog');
 const axios= require('axios');
 
 
-var appdLink='https://charlie202008310330195.saas.appdynamics.com';
-var appdUserName='charlie202008310330195@charlie202008310330195';
-var appdPassword='5myrxxro74q7';
+var appdLink='https://theater202009172349223.saas.appdynamics.com';
+var appdUserName='theater202009172349223@theater202009172349223';
+var appdPassword='vdrv1icvgblr';
 
 const MAIN_DIALOG='mainDialog';
 const BT_DIALOG='btDialog';
