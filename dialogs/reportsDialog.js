@@ -21,9 +21,9 @@ const { AppNameDialog }=require('./appNameDialog');
 const APPNAME_DIALOG = 'appNameDialog';
 
 
-var appdLink='https://charlie202008310330195.saas.appdynamics.com';
-var appdUserName='charlie202008310330195@charlie202008310330195';
-var appdPassword='5myrxxro74q7';
+var appdLink='https://theater202009172349223.saas.appdynamics.com';
+var appdUserName='theater202009172349223@theater202009172349223';
+var appdPassword='vdrv1icvgblr';
 
 var inputApp='';
 var info='';
